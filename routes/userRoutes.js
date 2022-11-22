@@ -2,43 +2,17 @@ const express = require('express');
 
 const router = express.Router();
 
-const getAllUsers = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: 'this route is not yet defiend',
-    });
-};
+const userController = require('../controllers/userController');
 
-const createUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: 'this route is not yet defiend',
-    });
-};
+router
+    .route('/')
+    .get(userController.getAllUsers)
+    .post(userController.createUser);
 
-const getUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: 'this route is not yet defiend',
-    });
-};
-
-const updateUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: 'this route is not yet defiend',
-    });
-};
-
-const deleteUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: 'this route is not yet defiend',
-    });
-};
-
-router.route('/').get(getAllUsers).post(createUser);
-
-router.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
+router
+    .route('/:id')
+    .get(userController.getUser)
+    .patch(userController.updateUser)
+    .delete(userController.deleteUser);
 
 module.exports = router;

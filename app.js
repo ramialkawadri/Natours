@@ -6,11 +6,12 @@ const tourRouter = require('./routes/tourRoutes');
 
 const app = express();
 
+// Middlewares
 app.use(express.json());
 app.use(morgan('dev'));
 
+// Routes
 app.use('/api/v1/tours', tourRouter);
-
 app.use('/api/v1/users', userRouter);
 
 const port = 3000;
