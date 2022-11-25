@@ -65,7 +65,7 @@ exports.createTour = async (req, res) => {
     } catch (err) {
         res.status(400).json({
             status: 'fail',
-            message: 'Invalid data sent!',
+            message: err,
         });
     }
 };
@@ -145,7 +145,71 @@ exports.getTourStats = async (req, res) => {
             },
         ]);
 
-        res.json(stats);
+        res.json({
+            status: 'success',
+            data: {
+                stats,
+            },
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: 'failed to delete the tour',
+        });
+    }
+};
+exports.getMonhlyPlan = async (req, res) => {
+    try {
+        const year = req.params.year;
+
+        const plan = await Tour.aggregate([
+            {
+                $unwind: '$startDates',
+            },
+            {
+                $match: {
+                    startDates: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`),
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        $month: '$startDates',
+                    },
+                    numToursStats: {
+                        $sum: 1,
+                    },
+                    tours: {
+                        $push: '$name',
+                    },
+                },
+            },
+            {
+                $addFields: {
+                    month: '$_id',
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                },
+            },
+            {
+                $sort: {
+                    numToursStats: -1,
+                },
+            },
+        ]);
+
+        res.json({
+            status: 'success',
+            data: {
+                plan,
+            },
+        });
     } catch (err) {
         res.status(400).json({
             status: 'fail',
