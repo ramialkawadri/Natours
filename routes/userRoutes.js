@@ -8,15 +8,18 @@ const authController = require('../controllers/authController');
 router.post('/signup', authController.signUp);
 router.post('/logIn', authController.logIn);
 
-router
-    .route('/')
-    .get(userController.getAllUsers)
-    .post(userController.createUser);
+router.post('/forgotPassword', authController.forgotPassword);
+router.patch('/resetPassword/:token', authController.resetPassword);
 
 router
-    .route('/:id')
-    .get(userController.getUser)
-    .patch(userController.updateUser)
-    .delete(userController.deleteUser);
+  .route('/')
+  .get(userController.getAllUsers)
+  .post(userController.createUser);
+
+router
+  .route('/:id')
+  .get(userController.getUser)
+  .patch(userController.updateUser)
+  .delete(userController.deleteUser);
 
 module.exports = router;
