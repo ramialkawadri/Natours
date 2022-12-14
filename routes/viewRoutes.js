@@ -5,6 +5,8 @@ const viewsController = require('../controllers/viewsController');
 
 const router = express.Router();
 
+router.use(viewsController.contentPolicy);
+
 router.use(authController.isLoggedIn);
 
 router.get('/', viewsController.getOverview);
