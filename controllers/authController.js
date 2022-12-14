@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
@@ -38,6 +37,15 @@ const createSendToken = (user, statusCode, res) => {
   });
 };
 
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'logged-out', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+
+  res.status(200).json({ status: 'success' });
+};
+
 exports.signUp = catchAsync(async (req, res) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -63,6 +71,30 @@ exports.logIn = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+// Only for rendered pages, no errors!
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      const currentUser = await User.findById(decoded.id);
+
+      if (!currentUser) return next();
+
+      if (currentUser.changedPasswordAfter(decoded.iat)) return next();
+
+      res.locals.user = currentUser;
+    } catch (err) {
+      return next();
+    }
+  }
+
+  next();
+});
+
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
 
@@ -71,23 +103,25 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
   if (!token) return next(new AppError('Please provide a token!', 401));
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  const freshUser = await User.findById(decoded.id);
+  const currentUser = await User.findById(decoded.id);
 
-  if (!freshUser)
+  if (!currentUser)
     return next(
       new AppError('The token belonging the user does not longer exist', 401)
     );
 
-  if (freshUser.changedPasswordAfter(decoded.iat))
+  if (currentUser.changedPasswordAfter(decoded.iat))
     return next(new AppError('User changed password! Pleas log in again', 401));
 
-  req.user = freshUser;
+  req.user = currentUser;
   next();
 });
 
