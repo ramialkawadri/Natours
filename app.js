@@ -16,6 +16,7 @@ const reviewRouter = require('./routes/reviewRoutes');
 const viewsRouter = require('./routes/viewRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
 const globalErrorHandler = require('./controllers/errorController');
+const compression = require('compression');
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use(
     ],
   })
 );
+app.use(compression());
 
 // Routes
 app.use('/', viewsRouter);
